@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
     default: "Employee",
   },
   imageUrl: String,
+  defaultLocation: {
+    type: { longitude: Number, latitude: Number },
+    required: true,
+  },
   remoteLocations: {
     type: [{ Number, Number }],
     validate: [
@@ -21,13 +25,14 @@ const userSchema = new mongoose.Schema({
       },
     ],
   },
+
   managerID: {
     type: String,
     ref: "User",
     required: true,
   },
 });
-userSchema.methods.generateAuthToken = () => {
+userSchema.methods.generateAuthToken = function () {
   return jwt.sign({ _id: this._id, role: this.role }, PrivateKeys.JWT_KEY);
 };
 const User = mongoose.model("Users", userSchema, "Users");
