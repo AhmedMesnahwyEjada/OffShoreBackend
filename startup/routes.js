@@ -2,6 +2,7 @@ const express = require("express");
 const users = require("../routes/users");
 const workingHours = require("../routes/workingHours");
 const locationRequest = require("../routes/locationRequest");
+const requests = require("../routes/requests");
 module.exports = (app) => {
   app.use(express.json());
   app.use(function (_, res, next) {
@@ -14,5 +15,6 @@ module.exports = (app) => {
   });
   app.use("/users", users);
   app.use("/workingHours", workingHours);
+  app.use("/requests", requests);
   app.use("/requests/location", locationRequest);
 };

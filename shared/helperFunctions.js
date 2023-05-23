@@ -16,4 +16,9 @@ module.exports = {
     const d = R * c;
     return d <= maxDistanceBetween;
   },
+  capitalizeOnlyFirstChar: (word) => {
+    if (!word) return undefined;
+    word = word.toLowerCase();
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  },
 };
