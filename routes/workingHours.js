@@ -1,7 +1,7 @@
 const express = require("express");
 const Joi = require("joi");
 const constants = require("../shared/constants");
-const { ErrorMessages } = constants;
+const { ErrorMessages, RequestCodes } = constants;
 const exceptionHandling = require("../middleware/exceptionHandling");
 const auth = require("../middleware/authorization");
 const WorkingHours = require("../models/workingHours");
@@ -14,13 +14,20 @@ router.post(
   exceptionHandling(async (req, res) => {
     const { error: requestError } = validateRequestBody(req.body.location);
     if (requestError)
-      return res.status(400).send(requestError.details[0].message);
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send(requestError.details[0].message);
     const {
       userToken: { _id: userID },
       location: { longitude, latitude },
     } = req.body;
-    const { defaultLocation, remoteLocations } = await User.findOne({
+    var { defaultLocation, remoteLocations } = await User.findOne({
       _id: userID,
+    });
+    remoteLocations = [...remoteLocations];
+    remoteLocations.unshift({
+      longitude: defaultLocation.longitude,
+      latitude: defaultLocation.latitude,
     });
     const nowTime = new Date(Date.now());
     const dayID = {
@@ -30,53 +37,71 @@ router.post(
       userID,
     };
     const workingDay = await WorkingHours.findOne({ id: dayID });
-    if (
-      isTwoLocationsClose(
-        latitude,
-        longitude,
-        defaultLocation.latitude,
-        defaultLocation.longitude,
-        0.5
-      )
-    ) {
-      if (!workingDay) {
-        const clockIns = [{ dateTime: nowTime, location: defaultLocation }];
-        const newWorkingDay = new WorkingHours({
-          id: dayID,
-          clockIns,
-          clockOuts: [],
-          totalWorkingHours: 0,
-        });
-        await newWorkingDay.save();
-        return res.send({
-          totalWorkingHours: 0,
-          location: constants.defaultLocationNumber,
-        });
+    const hasWorkFromHomeApproval = false;
+    return await remoteLocations.forEach(
+      async (workLocation, locationIndex) => {
+        if (
+          (!locationIndex || (locationIndex && hasWorkFromHomeApproval)) &&
+          isTwoLocationsClose(
+            latitude,
+            longitude,
+            workLocation.latitude,
+            workLocation.longitude
+          )
+        )
+          if (!workingDay)
+            return await clockIn(
+              new WorkingHours({ id: dayID }),
+              workLocation,
+              locationIndex,
+              nowTime,
+              res
+            );
+          else if (workingDay.clockIns.length > workingDay.clockOuts.length)
+            return res
+              .status(RequestCodes.BAD_REQUEST)
+              .send(ErrorMessages.ALREADY_CLOCKED_IN);
+          else
+            return await clockIn(
+              workingDay,
+              workLocation,
+              locationIndex,
+              nowTime,
+              res
+            );
+        return res
+          .status(RequestCodes.BAD_REQUEST)
+          .send(ErrorMessages.CANNOT_WORK_FROM_THIS_LOCATION);
       }
-      if (workingDay.clockIns.length > workingDay.clockOuts.length)
-        return res.status(400).send("You are already clocked In");
-      workingDay.clockIns.push({
-        dateTime: nowTime,
-        location: defaultLocation,
-      });
-      await workingDay.save();
-      return res.send({
-        totalWorkingHours: workingDay.totalWorkingHours,
-        location: constants.defaultLocationNumber,
-      });
-    }
-    //working from home
-    res.send("working from home");
+    );
   })
 );
-
+const clockIn = async (
+  workingDay,
+  clockInLocation,
+  locationIndex,
+  nowTime,
+  res
+) => {
+  workingDay.clockIns.push({
+    dateTime: nowTime,
+    location: clockInLocation,
+  });
+  await workingDay.save();
+  return res.send({
+    totalWorkingHours: workingDay.totalWorkingHours,
+    location: locationIndex,
+  });
+};
 router.post(
   "/clockOut",
   auth,
   exceptionHandling(async (req, res) => {
     const { error: requestError } = validateRequestBody(req.body.location);
     if (requestError)
-      return res.status(400).send(requestError.details[0].message);
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send(requestError.details[0].message);
     const {
       userToken: { _id: userID },
       location,
@@ -99,7 +124,9 @@ router.post(
 );
 const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
   if (!workingDay || workingDay.clockIns.length === workingDay.clockOuts.length)
-    return res.status(400).send(ErrorMessages.NOT_CLOCKED_IN);
+    return res
+      .status(RequestCodes.BAD_REQUEST)
+      .send(ErrorMessages.NOT_CLOCKED_IN);
   const clockInLocation = workingDay.clockIns.slice(-1)[0].location;
   if (
     !isTwoLocationsClose(
@@ -111,15 +138,18 @@ const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
     )
   )
     return res
-      .status(400)
+      .status(RequestCodes.BAD_REQUEST)
       .send(ErrorMessages.CLOCKING_OUT_FROM_DIFFERENT_LOCATION);
   const clockInTime = workingDay.clockIns.slice(-1)[0].dateTime;
   const totalWorkingHours =
     (nowTime.getTime() - clockInTime.getTime()) / constants.milliSecondInHour;
   if (totalWorkingHours > constants.dailyWorkingHoursLimit)
-    return res.status(400).send(ErrorMessages.NOT_CLOCKED_IN);
+    return res
+      .status(RequestCodes.BAD_REQUEST)
+      .send(ErrorMessages.NOT_CLOCKED_IN);
   workingDay.clockOuts.push({ dateTime: nowTime, location: clockOutLocation });
-  workingDay.totalWorkingHours = totalWorkingHours;
+  workingDay.totalWorkingHours =
+    totalWorkingHours + workingDay.totalWorkingHours;
   await workingDay.save();
   return res.send(workingDay);
 };

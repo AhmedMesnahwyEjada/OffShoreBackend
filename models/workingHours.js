@@ -15,13 +15,19 @@ const idSchema = new mongoose.Schema(
 );
 const workingHoursSchema = new mongoose.Schema({
   id: { type: idSchema, unique: true },
-  clockIns: [
-    { dateTime: Date, location: { longitude: Number, latitude: Number } },
-  ],
-  clockOuts: [
-    { dateTime: Date, location: { longitude: Number, latitude: Number } },
-  ],
-  totalWorkingHours: Number,
+  clockIns: {
+    type: [
+      { dateTime: Date, location: { longitude: Number, latitude: Number } },
+    ],
+    default: [],
+  },
+  clockOuts: {
+    type: [
+      { dateTime: Date, location: { longitude: Number, latitude: Number } },
+    ],
+    default: [],
+  },
+  totalWorkingHours: { type: Number, default: 0 },
 });
 const WorkingHours = mongoose.model(
   "WorkingHours",
