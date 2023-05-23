@@ -1,7 +1,7 @@
 const express = require("express");
 const Joi = require("joi");
 const constants = require("../shared/constants");
-const { RequestCodes } = constants;
+const { RequestCodes, ErrorMessages } = constants;
 const exceptionHandling = require("../middleware/exceptionHandling");
 const auth = require("../middleware/authorization");
 const LocationRequest = require("../models/locationRequest");
@@ -22,7 +22,11 @@ router.post(
       location,
       title,
     } = req.body;
-    var { managerID } = await User.findOne({ _id: userID });
+    var { managerID, remoteLocations } = await User.findOne({ _id: userID });
+    if (remoteLocations.length >= constants.MAX_NUMBER_OF_LOCATIONS)
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send(ErrorMessages.FILLED_REMOTE_LOCATIONS_ARRAY);
     const locationRequest = new LocationRequest({
       userID,
       managerID,

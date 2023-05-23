@@ -7,8 +7,10 @@ module.exports = {
     CANNOT_WORK_FROM_THIS_LOCATION:
       "you are not approved to work from this location",
     ALREADY_CLOCKED_IN: "You are already clocked In",
-    UNAUTHORIZED_MESSAGE : "Please Log in first",
-    FORBIDDEN_MESSAGE : "You are not authorized to access this content"
+    UNAUTHORIZED_MESSAGE: "Please Log in first",
+    FORBIDDEN_MESSAGE: "You are not authorized to access this content",
+    FILLED_REMOTE_LOCATIONS_ARRAY:
+      "You already have filled the locations array",
   },
   PrivateKeys: {
     JWT_KEY: "privateKey",
@@ -19,7 +21,7 @@ module.exports = {
     FORBIDDEN: 403,
     NOT_FOUND: 404,
   },
-  milliSecondInHour: 1000.0 * 60 * 60,
-  dailyWorkingHoursLimit: 24,
-  defaultLocationNumber: 0,
+  MILLIE_SECONDS_IN_HOUR: 1000.0 * 60 * 60,
+  DAILY_WORKING_HOURS_LIMIT: 24,
+  MAX_NUMBER_OF_LOCATIONS: 3,
 };

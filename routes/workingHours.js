@@ -143,8 +143,9 @@ const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
       .send(ErrorMessages.CLOCKING_OUT_FROM_DIFFERENT_LOCATION);
   const clockInTime = workingDay.clockIns.slice(-1)[0].dateTime;
   const totalWorkingHours =
-    (nowTime.getTime() - clockInTime.getTime()) / constants.milliSecondInHour;
-  if (totalWorkingHours > constants.dailyWorkingHoursLimit)
+    (nowTime.getTime() - clockInTime.getTime()) /
+    constants.MILLIE_SECONDS_IN_HOUR;
+  if (totalWorkingHours > constants.DAILY_WORKING_HOURS_LIMIT)
     return res
       .status(RequestCodes.BAD_REQUEST)
       .send(ErrorMessages.NOT_CLOCKED_IN);
