@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   arabicName: String,
   role: {
     type: String,
-    enum: ["Employee", "Manager", "Lead", "Senior"],
+    enum: ["Employee", "Manager"],
     default: "Employee",
   },
   imageUrl: String,
