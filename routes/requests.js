@@ -28,10 +28,15 @@ const getAllRequests = async (IDAttribute, req, res) => {
     userToken: { _id: userID },
   } = req.body;
   const status = capitalizeOnlyFirstChar(req.query.status);
-  const requests = await LocationRequest.find({
-    [IDAttribute]: userID,
-    status: status ?? { $regex: /.*/ },
-  });
+  const type = capitalizeOnlyFirstChar(req.query.type);
+  var requests = [];
+  if (!type || type == "Location")
+    requests = requests.concat(
+      await LocationRequest.find({
+        [IDAttribute]: userID,
+        status: status ?? { $regex: /.*/ },
+      })
+    );
   return res.send(requests);
 };
 module.exports = router;
