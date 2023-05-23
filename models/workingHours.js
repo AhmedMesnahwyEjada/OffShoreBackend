@@ -15,9 +15,11 @@ const idSchema = new mongoose.Schema(
 );
 const workingHoursSchema = new mongoose.Schema({
   id: { type: idSchema, unique: true },
-  clockIns: [{ date: Date, location: { longitude: Number, latitude: Number } }],
+  clockIns: [
+    { dateTime: Date, location: { longitude: Number, latitude: Number } },
+  ],
   clockOuts: [
-    { date: Date, location: { longitude: Number, latitude: Number } },
+    { dateTime: Date, location: { longitude: Number, latitude: Number } },
   ],
   totalWorkingHours: Number,
 });
