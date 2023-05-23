@@ -1,6 +1,7 @@
 const express = require("express");
 const Joi = require("joi");
 const constants = require("../shared/constants");
+const { isTwoLocationsClose } = require("../shared/helperFunctions");
 const { ErrorMessages, RequestCodes } = constants;
 const exceptionHandling = require("../middleware/exceptionHandling");
 const auth = require("../middleware/authorization");
@@ -152,29 +153,6 @@ const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
     totalWorkingHours + workingDay.totalWorkingHours;
   await workingDay.save();
   return res.send(workingDay);
-};
-const isTwoLocationsClose = (
-  lat1,
-  lon1,
-  lat2,
-  lon2,
-  maxDistanceBetween = 0.5
-) => {
-  const R = 6371;
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) *
-      Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c;
-  return d <= maxDistanceBetween;
-};
-const deg2rad = (deg) => {
-  return deg * (Math.PI / 180);
 };
 const validateRequestBody = (body) => {
   const bodySchema = Joi.object({
