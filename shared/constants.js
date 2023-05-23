@@ -7,6 +7,8 @@ module.exports = {
     CANNOT_WORK_FROM_THIS_LOCATION:
       "you are not approved to work from this location",
     ALREADY_CLOCKED_IN: "You are already clocked In",
+    UNAUTHORIZED_MESSAGE : "Please Log in first",
+    FORBIDDEN_MESSAGE : "You are not authorized to access this content"
   },
   PrivateKeys: {
     JWT_KEY: "privateKey",
