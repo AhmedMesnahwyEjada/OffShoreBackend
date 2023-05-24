@@ -16,6 +16,7 @@ module.exports = {
     LOCATION_REQUEST_NOT_FOUND: "The location request ID is incorrect",
     NOT_ALLOWED_TO_MODIFY_THIS_REQUEST:
       "You are not allowed to modify the status of this request",
+    WORK_FROM_HOME_REQUEST_NOT_FOUND: "The work from home request ID is incorrect",
   },
   PrivateKeys: {
     JWT_KEY: "privateKey",

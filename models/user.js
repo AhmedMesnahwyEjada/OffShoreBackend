@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
         return locations.length <= 3;
       },
     ],
+    default: [],
+  },
+  workingFromHomeDays: {
+    type: [{ type: Date, unique: true }],
+    default: [],
   },
   managerID: {
     type: String,
