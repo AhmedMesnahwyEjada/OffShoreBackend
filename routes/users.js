@@ -2,6 +2,7 @@ const express = require("express");
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
 const exceptionHandling = require("../middleware/exceptionHandling");
+const auth = require("../middleware/authorization");
 const User = require("../models/user");
 const { ErrorMessages } = require("../shared/constants");
 const router = express.Router();
@@ -24,6 +25,27 @@ router.post(
   })
 );
 
+router.get(
+  "/info",
+  auth,
+  exceptionHandling(async (req, res) => {
+    const {
+      userToken: { _id: userID },
+    } = req.body;
+    const user = await User.findById(userID);
+    const { firstName: managerFirstName, email: managerEmail } = User.findById(
+      user.managerID
+    );
+    console.log("LOL");
+    const {
+      _doc: { __v, _id, managerID, password, ...userInfo },
+    } = user;
+    console.log(userInfo);
+    userInfo.managerFirstName = managerFirstName;
+    userInfo.managerEmail = managerEmail;
+    res.send(userInfo);
+  })
+);
 router.get(
   "/login",
   exceptionHandling(async (req, res) => {

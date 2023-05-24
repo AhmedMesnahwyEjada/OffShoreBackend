@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   },
   imageUrl: String,
   defaultLocation: {
+    _id: false,
     type: { longitude: Number, latitude: Number },
     required: true,
   },
