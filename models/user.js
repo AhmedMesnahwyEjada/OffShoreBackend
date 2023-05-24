@@ -18,14 +18,14 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   remoteLocations: {
-    type: [{ Number, Number }],
+    _id: false,
+    type: [{ longitude: Number, latitude: Number }],
     validate: [
       (locations) => {
         return locations.length <= 3;
       },
     ],
   },
-
   managerID: {
     type: String,
     ref: "User",

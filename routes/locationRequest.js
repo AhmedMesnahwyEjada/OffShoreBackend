@@ -4,6 +4,7 @@ const constants = require("../shared/constants");
 const { RequestCodes, ErrorMessages } = constants;
 const exceptionHandling = require("../middleware/exceptionHandling");
 const auth = require("../middleware/authorization");
+const manager = require("../middleware/manager");
 const LocationRequest = require("../models/locationRequest");
 const User = require("../models/user");
 const router = express.Router();
@@ -35,6 +36,61 @@ router.post(
     });
     await locationRequest.save();
     return res.send(locationRequest._id);
+  })
+);
+router.post(
+  "/approve/:locationRequestID",
+  auth,
+  manager,
+  exceptionHandling(async (req, res) => {
+    const locationRequestID = req.params.locationRequestID;
+    const locationRequest = await LocationRequest.findById(locationRequestID);
+    if (!locationRequest)
+      return res
+        .status(RequestCodes.NOT_FOUND)
+        .send(ErrorMessages.LOCATION_REQUEST_NOT_FOUND);
+    const {
+      userToken: { _id: managerID },
+    } = req.body;
+    if (locationRequest.managerID != managerID)
+      return res
+        .status(RequestCodes.FORBIDDEN)
+        .send(ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST);
+    const user = await User.findById(locationRequest.userID);
+    if (user.remoteLocations.length >= 3)
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send(ErrorMessages.FILLED_REMOTE_LOCATIONS_ARRAY_MANAGER);
+    locationRequest.status = "Approved";
+    user.remoteLocations = user.remoteLocations.concat([
+      locationRequest.location,
+    ]);
+    await user.save();
+    await locationRequest.save();
+    res.send(locationRequest);
+  })
+);
+router.post(
+  "/reject/:locationRequestID",
+  auth,
+  manager,
+  exceptionHandling(async (req, res) => {
+    const locationRequestID = req.params.locationRequestID;
+    const locationRequest = await LocationRequest.findById(locationRequestID);
+    if (!locationRequest)
+      return res
+        .status(RequestCodes.NOT_FOUND)
+        .send(ErrorMessages.LOCATION_REQUEST_NOT_FOUND);
+    const {
+      userToken: { _id: managerID },
+    } = req.body;
+    if (locationRequest.managerID != managerID)
+      return res
+        .status(RequestCodes.FORBIDDEN)
+        .send(ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST);
+    locationRequest.status = "Rejected";
+    await locationRequest.save();
+    res.send(locationRequest);
   })
 );
 const validateRequestLocation = (location) => {

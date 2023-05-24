@@ -38,43 +38,41 @@ router.post(
       userID,
     };
     const workingDay = await WorkingHours.findOne({ id: dayID });
-    const hasWorkFromHomeApproval = false;
-    return await remoteLocations.forEach(
-      async (workLocation, locationIndex) => {
-        if (
-          (!locationIndex || (locationIndex && hasWorkFromHomeApproval)) &&
-          isTwoLocationsClose(
-            latitude,
-            longitude,
-            workLocation.latitude,
-            workLocation.longitude
-          )
+    const hasWorkFromHomeApproval = true;
+    for (const [locationIndex, workLocation] of remoteLocations.entries()) {
+      if (
+        (!locationIndex || (locationIndex && hasWorkFromHomeApproval)) &&
+        isTwoLocationsClose(
+          latitude,
+          longitude,
+          workLocation.latitude,
+          workLocation.longitude
         )
-          if (!workingDay)
-            return await clockIn(
-              new WorkingHours({ id: dayID }),
-              workLocation,
-              locationIndex,
-              nowTime,
-              res
-            );
-          else if (workingDay.clockIns.length > workingDay.clockOuts.length)
-            return res
-              .status(RequestCodes.BAD_REQUEST)
-              .send(ErrorMessages.ALREADY_CLOCKED_IN);
-          else
-            return await clockIn(
-              workingDay,
-              workLocation,
-              locationIndex,
-              nowTime,
-              res
-            );
-        return res
-          .status(RequestCodes.BAD_REQUEST)
-          .send(ErrorMessages.CANNOT_WORK_FROM_THIS_LOCATION);
-      }
-    );
+      )
+        if (!workingDay)
+          return await clockIn(
+            new WorkingHours({ id: dayID }),
+            workLocation,
+            locationIndex,
+            nowTime,
+            res
+          );
+        else if (workingDay.clockIns.length > workingDay.clockOuts.length)
+          return res
+            .status(RequestCodes.BAD_REQUEST)
+            .send(ErrorMessages.ALREADY_CLOCKED_IN);
+        else
+          return await clockIn(
+            workingDay,
+            workLocation,
+            locationIndex,
+            nowTime,
+            res
+          );
+    }
+    return res
+      .status(RequestCodes.BAD_REQUEST)
+      .send(ErrorMessages.CANNOT_WORK_FROM_THIS_LOCATION);
   })
 );
 const clockIn = async (

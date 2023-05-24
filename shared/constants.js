@@ -11,6 +11,11 @@ module.exports = {
     FORBIDDEN_MESSAGE: "You are not authorized to access this content",
     FILLED_REMOTE_LOCATIONS_ARRAY:
       "You already have filled the locations array",
+    FILLED_REMOTE_LOCATIONS_ARRAY_MANAGER:
+      "The employee have already filled the locations array",
+    LOCATION_REQUEST_NOT_FOUND: "The location request ID is incorrect",
+    NOT_ALLOWED_TO_MODIFY_THIS_REQUEST:
+      "You are not allowed to modify the status of this request",
   },
   PrivateKeys: {
     JWT_KEY: "privateKey",
