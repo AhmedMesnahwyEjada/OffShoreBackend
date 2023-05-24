@@ -14,7 +14,7 @@ const locationRequestSchema = new mongoose.Schema({
   location: { longitude: Number, latitude: Number },
   status: {
     type: String,
-    enum: ["Pending", "Approved", "Rejected"],
+    enum: ["Pending", "Approved", "Rejected", "Canceled"],
     default: "Pending",
   },
 });

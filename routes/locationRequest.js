@@ -93,6 +93,28 @@ router.post(
     res.send(locationRequest);
   })
 );
+router.post(
+  "/cancel/:locationRequestID",
+  auth,
+  exceptionHandling(async (req, res) => {
+    const locationRequestID = req.params.locationRequestID;
+    const locationRequest = await LocationRequest.findById(locationRequestID);
+    if (!locationRequest)
+      return res
+        .status(RequestCodes.NOT_FOUND)
+        .send(ErrorMessages.LOCATION_REQUEST_NOT_FOUND);
+    const {
+      userToken: { _id: userID },
+    } = req.body;
+    if (locationRequest.userID != userID)
+      return res
+        .status(RequestCodes.FORBIDDEN)
+        .send(ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST);
+    locationRequest.status = "Canceled";
+    await locationRequest.save();
+    res.send(locationRequest);
+  })
+);
 const validateRequestLocation = (location) => {
   const locationSchema = Joi.object({
     longitude: Joi.number().required(),
