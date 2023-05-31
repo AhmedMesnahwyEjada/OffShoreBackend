@@ -4,6 +4,6 @@ module.exports = (req, res, next) => {
   if (token === "Employee")
     return res
       .status(RequestCodes.FORBIDDEN)
-      .send(ErrorMessages.FORBIDDEN_MESSAGE);
+      .send({ errors: { message: ErrorMessages.FORBIDDEN_MESSAGE } });
   next();
 };

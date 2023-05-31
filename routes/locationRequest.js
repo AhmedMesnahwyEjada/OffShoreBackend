@@ -27,7 +27,9 @@ router.post(
     if (remoteLocations.length >= constants.MAX_NUMBER_OF_LOCATIONS)
       return res
         .status(RequestCodes.BAD_REQUEST)
-        .send(ErrorMessages.FILLED_REMOTE_LOCATIONS_ARRAY);
+        .send({
+          errors: { message: ErrorMessages.FILLED_REMOTE_LOCATIONS_ARRAY },
+        });
     const locationRequest = new LocationRequest({
       userID,
       managerID,
@@ -35,7 +37,7 @@ router.post(
       location,
     });
     await locationRequest.save();
-    return res.send(locationRequest._id);
+    return res.status(RequestCodes.OK).send(locationRequest._id);
   })
 );
 router.post(
@@ -48,26 +50,34 @@ router.post(
     if (!locationRequest)
       return res
         .status(RequestCodes.NOT_FOUND)
-        .send(ErrorMessages.LOCATION_REQUEST_NOT_FOUND);
+        .send({
+          errors: { message: ErrorMessages.LOCATION_REQUEST_NOT_FOUND },
+        });
     const {
       userToken: { _id: managerID },
     } = req.body;
     if (locationRequest.managerID != managerID)
       return res
         .status(RequestCodes.FORBIDDEN)
-        .send(ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST);
+        .send({
+          errors: { message: ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST },
+        });
     const user = await User.findById(locationRequest.userID);
     if (user.remoteLocations.length >= 3)
       return res
         .status(RequestCodes.BAD_REQUEST)
-        .send(ErrorMessages.FILLED_REMOTE_LOCATIONS_ARRAY_MANAGER);
+        .send({
+          errors: {
+            message: ErrorMessages.FILLED_REMOTE_LOCATIONS_ARRAY_MANAGER,
+          },
+        });
     locationRequest.status = "Approved";
     user.remoteLocations = user.remoteLocations.concat([
       locationRequest.location,
     ]);
     await user.save();
     await locationRequest.save();
-    res.send(locationRequest);
+    res.status(RequestCodes.OK).send(locationRequest);
   })
 );
 router.post(
@@ -80,17 +90,21 @@ router.post(
     if (!locationRequest)
       return res
         .status(RequestCodes.NOT_FOUND)
-        .send(ErrorMessages.LOCATION_REQUEST_NOT_FOUND);
+        .send({
+          errors: { message: ErrorMessages.LOCATION_REQUEST_NOT_FOUND },
+        });
     const {
       userToken: { _id: managerID },
     } = req.body;
     if (locationRequest.managerID != managerID)
       return res
         .status(RequestCodes.FORBIDDEN)
-        .send(ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST);
+        .send({
+          errors: { message: ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST },
+        });
     locationRequest.status = "Rejected";
     await locationRequest.save();
-    res.send(locationRequest);
+    res.status(RequestCodes.OK).send(locationRequest);
   })
 );
 router.post(
@@ -102,17 +116,21 @@ router.post(
     if (!locationRequest)
       return res
         .status(RequestCodes.NOT_FOUND)
-        .send(ErrorMessages.LOCATION_REQUEST_NOT_FOUND);
+        .send({
+          errors: { message: ErrorMessages.LOCATION_REQUEST_NOT_FOUND },
+        });
     const {
       userToken: { _id: userID },
     } = req.body;
     if (locationRequest.userID != userID)
       return res
         .status(RequestCodes.FORBIDDEN)
-        .send(ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST);
+        .send({
+          errors: { message: ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST },
+        });
     locationRequest.status = "Canceled";
     await locationRequest.save();
-    res.send(locationRequest);
+    res.status(RequestCodes.OK).send(locationRequest);
   })
 );
 const validateRequestLocation = (location) => {

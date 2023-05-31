@@ -16,7 +16,9 @@ module.exports = {
     LOCATION_REQUEST_NOT_FOUND: "The location request ID is incorrect",
     NOT_ALLOWED_TO_MODIFY_THIS_REQUEST:
       "You are not allowed to modify the status of this request",
-    WORK_FROM_HOME_REQUEST_NOT_FOUND: "The work from home request ID is incorrect",
+    WORK_FROM_HOME_REQUEST_NOT_FOUND:
+      "The work from home request ID is incorrect",
+    THIS_USER_NO_LONGER_EXIST: "This user no longer exist",
   },
   PrivateKeys: {
     JWT_KEY: "privateKey",
@@ -26,6 +28,7 @@ module.exports = {
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
     NOT_FOUND: 404,
+    OK: 200,
   },
   MILLIE_SECONDS_IN_HOUR: 1000.0 * 60 * 60,
   DAILY_WORKING_HOURS_LIMIT: 24,

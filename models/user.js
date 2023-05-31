@@ -12,7 +12,12 @@ const userSchema = new mongoose.Schema({
     enum: ["Employee", "Manager"],
     default: "Employee",
   },
+  roleArabic: {
+    type: String,
+    required: true,
+  },
   imageUrl: String,
+  mobileNumber: String,
   defaultLocation: {
     _id: false,
     type: { longitude: Number, latitude: Number },
@@ -29,7 +34,8 @@ const userSchema = new mongoose.Schema({
     default: [],
   },
   workingFromHomeDays: {
-    type: [{ type: Date, unique: true }],
+    _id: false,
+    type: [Date],
     default: [],
   },
   managerID: {

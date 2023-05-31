@@ -1,3 +1,5 @@
+var moment = require("moment-timezone");
+var ts = require("@mapbox/timespace");
 module.exports = {
   isTwoLocationsClose: (lat1, lon1, lat2, lon2, maxDistanceBetween = 0.5) => {
     const deg2rad = (deg) => {
@@ -20,5 +22,30 @@ module.exports = {
     if (!word) return undefined;
     word = word.toLowerCase();
     return word.charAt(0).toUpperCase() + word.slice(1);
+  },
+  isDateInArray: (array, newDate) => {
+    for (date of array)
+      if (
+        date.getDate() === newDate.getDate() &&
+        date.getMonth() === newDate.getMonth() &&
+        date.getYear() === newDate.getYear()
+      )
+        return true;
+    return false;
+  },
+  reformatDate: (date) => {
+    date = new Date(new Date(date).setUTCHours(0));
+    date = new Date(date.setDate(date.getDate() + 1));
+    return date;
+  },
+  changeTimeZoneToLocation: (location, nowTime) => {
+    const timeStamp = ts.getFuzzyLocalTimeFromPoint(nowTime, location);
+    return timeStamp.format("HH:mm");
+  },
+  getNumberOfWorkingDays: (startDate, endDate, vacationDays = [5, 6]) => {
+    var numberOfDays = 0;
+    for (var d = startDate; d <= endDate; d.setDate(d.getDate() + 1))
+      if (!vacationDays.includes(d.getUTCDay())) numberOfDays++;
+    return numberOfDays;
   },
 };
