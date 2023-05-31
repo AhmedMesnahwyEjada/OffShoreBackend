@@ -23,7 +23,11 @@ const workingHoursSchema = new mongoose.Schema({
   },
   clockOuts: {
     type: [
-      { dateTime: Date, location: { longitude: Number, latitude: Number } },
+      {
+        dateTime: Date,
+        location: { longitude: Number, latitude: Number },
+        lastClockInIndex: Number,
+      },
     ],
     default: [],
   },

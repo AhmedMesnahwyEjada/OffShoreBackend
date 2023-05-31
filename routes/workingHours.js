@@ -61,10 +61,6 @@ router.post(
             nowTime,
             res
           );
-        else if (workingDay.clockIns.length > workingDay.clockOuts.length)
-          return res
-            .status(RequestCodes.BAD_REQUEST)
-            .send({ errors: { message: ErrorMessages.ALREADY_CLOCKED_IN } });
         else
           return await clockIn(
             workingDay,
@@ -74,11 +70,9 @@ router.post(
             res
           );
     }
-    return res
-      .status(RequestCodes.BAD_REQUEST)
-      .send({
-        errors: { message: ErrorMessages.CANNOT_WORK_FROM_THIS_LOCATION },
-      });
+    return res.status(RequestCodes.BAD_REQUEST).send({
+      errors: { message: ErrorMessages.CANNOT_WORK_FROM_THIS_LOCATION },
+    });
   })
 );
 const clockIn = async (
@@ -123,20 +117,25 @@ router.post(
       userID,
     };
     const todayWorkingDay = await WorkingHours.findOne({ id: dayID });
-    if (!todayWorkingDay) {
-      dayID.day = dayID.day - 1;
-      const yesterdayWorkingDay = await WorkingHours.findOne({ id: dayID });
-      return await clockOut(yesterdayWorkingDay, location, nowTime, res);
-    }
     return await clockOut(todayWorkingDay, location, nowTime, res);
   })
 );
 const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
-  if (!workingDay || workingDay.clockIns.length === workingDay.clockOuts.length)
+  if (!workingDay)
     return res
       .status(RequestCodes.BAD_REQUEST)
       .send({ errors: { message: ErrorMessages.NOT_CLOCKED_IN } });
-  const clockInLocation = workingDay.clockIns.slice(-1)[0].location;
+  const lastClockOut = workingDay.clockOuts.slice(-1)[0];
+  if (
+    lastClockOut &&
+    lastClockOut.lastClockInIndex === workingDay.clockIns.length - 1
+  )
+    return res
+      .status(RequestCodes.BAD_REQUEST)
+      .send({ errors: { message: ErrorMessages.NOT_CLOCKED_IN } });
+
+  const firstClockIn = getFirstClockIn(workingDay);
+  const clockInLocation = firstClockIn.location;
   if (
     !isTwoLocationsClose(
       clockInLocation.latitude,
@@ -146,12 +145,10 @@ const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
       0.5
     )
   )
-    return res
-      .status(RequestCodes.BAD_REQUEST)
-      .send({
-        errors: { message: ErrorMessages.CLOCKING_OUT_FROM_DIFFERENT_LOCATION },
-      });
-  const clockInTime = workingDay.clockIns.slice(-1)[0].dateTime;
+    return res.status(RequestCodes.BAD_REQUEST).send({
+      errors: { message: ErrorMessages.CLOCKING_OUT_FROM_DIFFERENT_LOCATION },
+    });
+  const clockInTime = firstClockIn.dateTime;
   const totalWorkingHours =
     (nowTime.getTime() - clockInTime.getTime()) /
     constants.MILLIE_SECONDS_IN_HOUR;
@@ -159,11 +156,22 @@ const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
     return res
       .status(RequestCodes.BAD_REQUEST)
       .send({ errors: { message: ErrorMessages.NOT_CLOCKED_IN } });
-  workingDay.clockOuts.push({ dateTime: nowTime, location: clockOutLocation });
+  workingDay.clockOuts.push({
+    dateTime: nowTime,
+    location: clockOutLocation,
+    lastClockInIndex: workingDay.clockIns.length - 1,
+  });
   workingDay.totalWorkingHours =
     totalWorkingHours + workingDay.totalWorkingHours;
   await workingDay.save();
   return res.status(RequestCodes.OK).send(workingDay);
+};
+
+const getFirstClockIn = (workingDay) => {
+  if (!workingDay.clockOuts.length) return workingDay.clockIns[0];
+  return workingDay.clockIns[
+    workingDay.clockOuts.slice(-1)[0].lastClockInIndex + 1
+  ];
 };
 const validateRequestBody = (body) => {
   const bodySchema = Joi.object({
