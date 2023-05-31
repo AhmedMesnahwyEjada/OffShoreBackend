@@ -84,27 +84,37 @@ router.get(
       {
         name: "project1",
         managerName: "Ahmed",
+        managerNameArabic: "احمد",
         country: "Egypt",
+        countryNameArabic: "مصر",
       },
       {
         name: "project2",
         managerName: "Moustafa",
+        managerNameArabic: "مصطفى",
         country: "Egypt",
+        countryNameArabic: "مصر",
       },
       {
         name: "project3",
         managerName: "Moustafa",
-        country: "Saudi Arabia",
+        managerNameArabic: "مصطفى",
+        country: "Saudi",
+        countryNameArabic: "السعودية",
       },
       {
         name: "project4",
         managerName: "Ahmed",
+        managerNameArabic: "احمد",
         country: "Jordan",
+        countryNameArabic: "الاردن",
       },
       {
         name: "project5",
         managerName: "Moustafa",
+        managerNameArabic: "مصطفى",
         country: "India",
+        countryNameArabic: "الهند",
       },
     ]);
   })
