@@ -42,6 +42,8 @@ router.post(
       userID,
     };
     const workingDay = await WorkingHours.findOne({ id: dayID });
+    if (getIfUserClockedIn(workingDay))
+      return clockIn(workingDay, { longitude, latitude }, 0, nowTime, res);
     const hasWorkFromHomeApproval = true;
     for (const [locationIndex, workLocation] of remoteLocations.entries()) {
       if (
@@ -117,23 +119,14 @@ router.post(
       userID,
     };
     const todayWorkingDay = await WorkingHours.findOne({ id: dayID });
+    if (!getIfUserClockedIn(todayWorkingDay))
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send({ errors: { message: ErrorMessages.NOT_CLOCKED_IN } });
     return await clockOut(todayWorkingDay, location, nowTime, res);
   })
 );
 const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
-  if (!workingDay)
-    return res
-      .status(RequestCodes.BAD_REQUEST)
-      .send({ errors: { message: ErrorMessages.NOT_CLOCKED_IN } });
-  const lastClockOut = workingDay.clockOuts.slice(-1)[0];
-  if (
-    lastClockOut &&
-    lastClockOut.lastClockInIndex === workingDay.clockIns.length - 1
-  )
-    return res
-      .status(RequestCodes.BAD_REQUEST)
-      .send({ errors: { message: ErrorMessages.NOT_CLOCKED_IN } });
-
   const firstClockIn = getFirstClockIn(workingDay);
   const clockInLocation = firstClockIn.location;
   if (
@@ -166,12 +159,63 @@ const clockOut = async (workingDay, clockOutLocation, nowTime, res) => {
   await workingDay.save();
   return res.status(RequestCodes.OK).send(workingDay);
 };
+router.get(
+  "/info",
+  auth,
+  exceptionHandling(async (req, res) => {
+    const {
+      userToken: { _id: userID },
+    } = req.body;
+    const nowTime = new Date(Date.now());
+    const dayID = {
+      year: nowTime.getUTCFullYear(),
+      month: nowTime.getUTCMonth() + 1,
+      day: nowTime.getUTCDate(),
+      userID,
+    };
+    const workingDay = await WorkingHours.findOne({ id: dayID });
+    if (!workingDay)
+      return res.status(RequestCodes.OK).send({
+        totalWorkingHours: 0,
+        checkedIn: false,
+        firstCheckInTime: NaN,
+      });
+    const checkedIn = getIfUserClockedIn(workingDay);
+    var totalWorkingHours = 0;
+    if (!checkedIn) totalWorkingHours = workingDay?.totalWorkingHours || 0;
+    else {
+      const firstClockInTime = getFirstClockIn(workingDay).dateTime;
+      totalWorkingHours =
+        workingDay.totalWorkingHours +
+        (nowTime.getTime() - firstClockInTime.getTime()) /
+          constants.MILLIE_SECONDS_IN_HOUR;
+    }
+    const firstClockIn = workingDay.clockIns[0];
+    const firstCheckInTime = changeTimeZoneToLocation(
+      [firstClockIn.location.longitude, firstClockIn.location.latitude],
+      firstClockIn.dateTime
+    );
+    return res
+      .status(RequestCodes.OK)
+      .send({ totalWorkingHours, checkedIn, firstCheckInTime });
+  })
+);
 
 const getFirstClockIn = (workingDay) => {
   if (!workingDay.clockOuts.length) return workingDay.clockIns[0];
   return workingDay.clockIns[
     workingDay.clockOuts.slice(-1)[0].lastClockInIndex + 1
   ];
+};
+const getIfUserClockedIn = (workingDay) => {
+  if (!workingDay) return false;
+  if (!workingDay.clockOuts.length && workingDay.clockIns.length) return true;
+  if (
+    workingDay.clockOuts.slice(-1)[0].lastClockInIndex + 1 <
+    workingDay.clockIns.length
+  )
+    return true;
+  return false;
 };
 const validateRequestBody = (body) => {
   const bodySchema = Joi.object({
