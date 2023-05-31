@@ -19,6 +19,7 @@ module.exports = {
     WORK_FROM_HOME_REQUEST_NOT_FOUND:
       "The work from home request ID is incorrect",
     THIS_USER_NO_LONGER_EXIST: "This user no longer exist",
+    TIME_SHEET_REQUEST_NOT_FOUND: "The time sheet request ID is incorrect",
   },
   PrivateKeys: {
     JWT_KEY: "privateKey",

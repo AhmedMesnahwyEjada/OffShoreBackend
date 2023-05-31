@@ -2,7 +2,6 @@ const express = require("express");
 const {
   capitalizeOnlyFirstChar,
   getNumberOfWorkingDays,
-  reformatDate,
 } = require("../shared/helperFunctions");
 const exceptionHandling = require("../middleware/exceptionHandling");
 const auth = require("../middleware/authorization");
@@ -10,6 +9,7 @@ const LocationRequest = require("../models/locationRequest");
 const manager = require("../middleware/manager");
 const WorkFromHomeRequest = require("../models/workFromHomeRequest");
 const User = require("../models/user");
+const TimeSheetRequest = require("../models/timeSheetRequest");
 const { RequestCodes, ErrorMessages } = require("../shared/constants");
 const router = express.Router();
 
@@ -79,6 +79,27 @@ const getAllRequests = async (IDAttribute, req, res) => {
       delete r.userID;
     }
     requests = requests.concat(workFromHomeRequests);
+  }
+  if (!type || type == "timeSheet") {
+    var timeSheetRequests = await TimeSheetRequest.find({
+      [IDAttribute]: userID,
+      status: status ?? { $regex: /.*/ },
+    });
+    for (var r of timeSheetRequests) {
+      const user = await User.findById(r.userID);
+      if (!user)
+        return res.status(RequestCodes.BAD_REQUEST).send({
+          errors: { message: ErrorMessages.THIS_USER_NO_LONGER_EXIST },
+        });
+      r._doc.firstName = user.firstName;
+      r._doc.lastName = user.lastName;
+      r._doc.arabicName = user.arabicName;
+      r._doc.position = user.role;
+      r._doc.type = "timeSheet";
+      r._doc.positionArabic = user.roleArabic;
+      delete r.userID;
+    }
+    requests = requests.concat(timeSheetRequests);
   }
   return res.status(RequestCodes.OK).send(requests);
 };
