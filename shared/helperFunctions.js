@@ -44,7 +44,7 @@ module.exports = {
   },
   getNumberOfWorkingDays: (startDate, endDate, vacationDays = [5, 6]) => {
     var numberOfDays = 0;
-    for (var d = startDate; d <= endDate; d.setDate(d.getDate() + 1))
+    for (var d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1))
       if (!vacationDays.includes(d.getUTCDay())) numberOfDays++;
     return numberOfDays;
   },

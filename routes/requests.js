@@ -75,10 +75,7 @@ const getAllRequests = async (IDAttribute, req, res) => {
       r._doc.position = user.role;
       r._doc.type = "workFromHome";
       r._doc.positionArabic = user.roleArabic;
-      r._doc.numberOfDays = getNumberOfWorkingDays(
-        reformatDate(r.startDate),
-        reformatDate(r.endDate)
-      );
+      r._doc.numberOfDays = getNumberOfWorkingDays(r.startDate, r.endDate);
       delete r.userID;
     }
     requests = requests.concat(workFromHomeRequests);
