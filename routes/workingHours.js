@@ -4,6 +4,7 @@ const constants = require("../shared/constants");
 const {
   isTwoLocationsClose,
   changeTimeZoneToLocation,
+  isDateInArray,
 } = require("../shared/helperFunctions");
 const { ErrorMessages, RequestCodes } = constants;
 const exceptionHandling = require("../middleware/exceptionHandling");
@@ -44,7 +45,7 @@ router.post(
     const workingDay = await WorkingHours.findOne({ id: dayID });
     if (getIfUserClockedIn(workingDay))
       return clockIn(workingDay, { longitude, latitude }, 0, nowTime, res);
-    const hasWorkFromHomeApproval = true;
+    const hasWorkFromHomeApproval = isDateInArray(workingFromHomeDays, nowTime);
     for (const [locationIndex, workLocation] of remoteLocations.entries()) {
       if (
         (!locationIndex || (locationIndex && hasWorkFromHomeApproval)) &&
