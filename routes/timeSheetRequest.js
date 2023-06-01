@@ -16,7 +16,7 @@ router.post(
     if (requestError)
       return res
         .status(RequestCodes.BAD_REQUEST)
-        .send(requestError.details[0].message);
+        .send({ errors: { message: requestError.details[0].message } });
     const {
       userToken: { _id: userID },
       numberOfDays,
@@ -121,9 +121,16 @@ router.get(
 );
 
 const validateRequestTimeSheet = (body) => {
-  const timeSheetSchema = Joi.object({
+  const project = Joi.object().keys({
+    name: Joi.string().required(),
+    managerName: Joi.string().required(),
+    country: Joi.string().required(),
     numberOfDays: Joi.number().required(),
-    projects: Joi.array().min(1).required(),
+    managerNameArabic: Joi.string(),
+    countryNameArabic: Joi.string(),
+  });
+  const timeSheetSchema = Joi.object({
+    projects: Joi.array().min(1).required().items(project),
     userToken: Joi.object(),
   });
   return timeSheetSchema.validate(body);

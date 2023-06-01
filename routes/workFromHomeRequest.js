@@ -30,7 +30,7 @@ router.post(
     if (requestError)
       return res
         .status(RequestCodes.BAD_REQUEST)
-        .send(requestError.details[0].message);
+        .send({ errors: { message: requestError.details[0].message } });
     const { managerID } = await User.findById(userID);
 
     startDate = reformatDate(startDate);
@@ -62,7 +62,7 @@ router.put(
     if (requestError)
       return res
         .status(RequestCodes.BAD_REQUEST)
-        .send(requestError.details[0].message);
+        .send({ errors: { message: requestError.details[0].message } });
     startDate = reformatDate(startDate);
     endDate = reformatDate(endDate);
     const workFromHomeRequest = await WorkFromHomeRequest.findById(

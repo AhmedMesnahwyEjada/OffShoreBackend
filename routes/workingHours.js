@@ -21,7 +21,7 @@ router.post(
     if (requestError)
       return res
         .status(RequestCodes.BAD_REQUEST)
-        .send(requestError.details[0].message);
+        .send({ errors: { message: requestError.details[0].message } });
     const {
       userToken: { _id: userID },
       location: { longitude, latitude },
@@ -107,7 +107,7 @@ router.post(
     if (requestError)
       return res
         .status(RequestCodes.BAD_REQUEST)
-        .send(requestError.details[0].message);
+        .send({ errors: { message: requestError.details[0].message } });
     const {
       userToken: { _id: userID },
       location,

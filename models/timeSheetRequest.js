@@ -10,8 +10,17 @@ const timeSheetRequestSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  projects: [],
-  numberOfDays: { type: Number, required: true },
+  projects: {
+    type: [
+      {
+        name: String,
+        country: String,
+        managerName: String,
+        numberOfDays: Number,
+      },
+    ],
+    required: true,
+  },
   status: {
     type: String,
     enum: ["Pending", "Approved", "Rejected", "Canceled"],
@@ -19,8 +28,8 @@ const timeSheetRequestSchema = new mongoose.Schema({
   },
 });
 const TimeSheetRequestSchema = mongoose.model(
-  "TimeSheetRequestSchema",
+  "TimeSheetRequest",
   timeSheetRequestSchema,
-  "TimeSheetRequestSchema"
+  "TimeSheetRequest"
 );
 module.exports = TimeSheetRequestSchema;

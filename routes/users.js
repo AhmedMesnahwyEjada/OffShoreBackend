@@ -13,12 +13,14 @@ router.post(
   exceptionHandling(async (req, res) => {
     const { error: requestError } = validateRequestBody(req.body);
     if (requestError)
-      return res.status(400).send(requestError.details[0].message);
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send({ errors: { message: requestError.details[0].message } });
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user)
       return res
-        .status(400)
+        .status(RequestCodes.BAD_REQUEST)
         .send({ errors: { message: ErrorMessages.INVALID_EMAIl_OR_PASSWORD } });
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid)
@@ -86,7 +88,7 @@ router.post(
   exceptionHandling(async (req, res) => {
     const { error: requestError } = validateRequestBody(req.body);
     if (requestError)
-      return res.status(400).send(requestError.details[0].message);
+      return res.status(RequestCodes.BAD_REQUEST).send({ errors: { message: requestError.details[0].message}});
     const { email, password, firstName, managerID, role } = req.body;
     const hashedPassword = await createHashedPassword(password, 10);
     const user = new User({
