@@ -34,17 +34,8 @@ const getAllRequests = async (IDAttribute, req, res) => {
   const {
     userToken: { _id: userID },
   } = req.body;
-  if (typeof req.query.type == "string") req.query.type = [req.query.type];
-  if (typeof req.query.status == "string")
-    req.query.status = [req.query.status];
-  var status = [];
-  if (req.query.status)
-    for (s of req.query.status) status.push(capitalizeOnlyFirstChar(s));
-  else status = undefined;
-  var type = [];
-  if (req.query.type)
-    for (t of req.query.type) type.push(capitalizeOnlyFirstChar(t));
-  else type = undefined;
+  const status = getArrayOfParams(req.query.status);
+  const type = getArrayOfParams(req.query.type);
   var requests = [];
   if (!type || type.includes("Location")) {
     var locationRequests = await LocationRequest.find({
@@ -111,5 +102,13 @@ const getAllRequests = async (IDAttribute, req, res) => {
     requests = requests.concat(timeSheetRequests);
   }
   return res.status(RequestCodes.OK).send(requests);
+};
+
+const getArrayOfParams = (params) => {
+  if (!params) return undefined;
+  if (typeof params == "string") params = [params];
+  var dummy = [];
+  for (p of params) dummy.push(capitalizeOnlyFirstChar(p));
+  return dummy;
 };
 module.exports = router;
