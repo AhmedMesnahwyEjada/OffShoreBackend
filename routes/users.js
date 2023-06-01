@@ -88,7 +88,9 @@ router.post(
   exceptionHandling(async (req, res) => {
     const { error: requestError } = validateRequestBody(req.body);
     if (requestError)
-      return res.status(RequestCodes.BAD_REQUEST).send({ errors: { message: requestError.details[0].message}});
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send({ errors: { message: requestError.details[0].message } });
     const { email, password, firstName, managerID, role } = req.body;
     const hashedPassword = await createHashedPassword(password, 10);
     const user = new User({

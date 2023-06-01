@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
         .send({ errors: { message: ErrorMessages.UNAUTHORIZED_MESSAGE } });
     const userToken = jwt.verify(token, PrivateKeys.JWT_KEY);
     req.body.userToken = userToken;
-    req.body.role = userToken.role;
+    req.body.userToken.role = userToken.role;
     next();
   } catch (err) {
     res.status(400).send("invalid token");

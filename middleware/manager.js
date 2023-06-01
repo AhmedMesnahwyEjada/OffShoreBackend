@@ -1,6 +1,6 @@
 const { RequestCodes, ErrorMessages } = require("../shared/constants");
 module.exports = (req, res, next) => {
-  const role = req.body.role;
+  const role = req.body.userToken.role;
   if (role !== "Manager")
     return res
       .status(RequestCodes.FORBIDDEN)
