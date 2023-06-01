@@ -1,7 +1,7 @@
 const { RequestCodes, ErrorMessages } = require("../shared/constants");
 module.exports = (req, res, next) => {
-  const token = req.body.userToken;
-  if (token === "Employee")
+  const role = req.body.role;
+  if (role !== "Manager")
     return res
       .status(RequestCodes.FORBIDDEN)
       .send({ errors: { message: ErrorMessages.FORBIDDEN_MESSAGE } });
