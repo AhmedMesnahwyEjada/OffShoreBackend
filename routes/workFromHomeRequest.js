@@ -46,6 +46,47 @@ router.post(
   })
 );
 
+router.put(
+  "/:workFromHomeRequestID",
+  auth,
+  exceptionHandling(async (req, res) => {
+    var {
+      userToken: { _id: userID },
+      startDate,
+      endDate,
+    } = req.body;
+    const { error: requestError } = validateWorkFromHomeRequest({
+      startDate,
+      endDate,
+    });
+    if (requestError)
+      return res
+        .status(RequestCodes.BAD_REQUEST)
+        .send(requestError.details[0].message);
+    startDate = reformatDate(startDate);
+    endDate = reformatDate(endDate);
+    const workFromHomeRequest = await WorkFromHomeRequest.findById(
+      req.params.workFromHomeRequestID
+    );
+    if (!workFromHomeRequest)
+      return res.status(RequestCodes.NOT_FOUND).send({
+        errors: { message: ErrorMessages.WORK_FROM_HOME_REQUEST_NOT_FOUND },
+      });
+    if (workFromHomeRequest.userID != userID)
+      return res.status(RequestCodes.FORBIDDEN).send({
+        errors: { message: ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST },
+      });
+    if (workFromHomeRequest.status != "Pending")
+      return res.status(RequestCodes.BAD_REQUEST).send({
+        errors: { message: ErrorMessages.CANNOT_MODIFY_THIS_REQUEST },
+      });
+    workFromHomeRequest.startDate = startDate;
+    workFromHomeRequest.endDate = endDate;
+    await workFromHomeRequest.save();
+    res.status(RequestCodes.OK).send(workFromHomeRequest);
+  })
+);
+
 router.post(
   "/approve/:workFromHomeRequestID",
   auth,
