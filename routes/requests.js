@@ -34,10 +34,19 @@ const getAllRequests = async (IDAttribute, req, res) => {
   const {
     userToken: { _id: userID },
   } = req.body;
-  const status = capitalizeOnlyFirstChar(req.query.status);
-  const type = capitalizeOnlyFirstChar(req.query.type);
+  if (typeof req.query.type == "string") req.query.type = [req.query.type];
+  if (typeof req.query.status == "string")
+    req.query.status = [req.query.status];
+  var status = [];
+  if (req.query.status)
+    for (s of req.query.status) status.push(capitalizeOnlyFirstChar(s));
+  else status = undefined;
+  var type = [];
+  if (req.query.type)
+    for (t of req.query.type) type.push(capitalizeOnlyFirstChar(t));
+  else type = undefined;
   var requests = [];
-  if (!type || type == "Location") {
+  if (!type || type.includes("Location")) {
     var locationRequests = await LocationRequest.find({
       [IDAttribute]: userID,
       status: status ?? { $regex: /.*/ },
@@ -58,7 +67,7 @@ const getAllRequests = async (IDAttribute, req, res) => {
     }
     requests = requests.concat(locationRequests);
   }
-  if (!type || type == "Workfromhome") {
+  if (!type || type.includes("Workfromhome")) {
     var workFromHomeRequests = await WorkFromHomeRequest.find({
       [IDAttribute]: userID,
       status: status ?? { $regex: /.*/ },
@@ -80,7 +89,7 @@ const getAllRequests = async (IDAttribute, req, res) => {
     }
     requests = requests.concat(workFromHomeRequests);
   }
-  if (!type || type == "timeSheet") {
+  if (!type || type.includes("Timesheet")) {
     var timeSheetRequests = await TimeSheetRequest.find({
       [IDAttribute]: userID,
       status: status ?? { $regex: /.*/ },
