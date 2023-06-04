@@ -11,6 +11,7 @@ const exceptionHandling = require("../middleware/exceptionHandling");
 const auth = require("../middleware/authorization");
 const WorkingHours = require("../models/workingHours");
 const User = require("../models/user");
+const manager = require("../middleware/manager");
 const router = express.Router();
 
 router.post(
@@ -43,24 +44,24 @@ router.post(
       userID,
     };
     const workingDay = await WorkingHours.findOne({ id: dayID });
-    if (getIfUserClockedIn(workingDay))
-      return clockIn(workingDay, { longitude, latitude }, 0, nowTime, res);
     const hasWorkFromHomeApproval = isDateInArray(workingFromHomeDays, nowTime);
     for (const [locationIndex, workLocation] of remoteLocations.entries()) {
+      isApprovedLocation = isTwoLocationsClose(
+        latitude,
+        longitude,
+        workLocation.latitude,
+        workLocation.longitude
+      );
       if (
-        (!locationIndex || (locationIndex && hasWorkFromHomeApproval)) &&
-        isTwoLocationsClose(
-          latitude,
-          longitude,
-          workLocation.latitude,
-          workLocation.longitude
-        )
+        getIfUserClockedIn(workingDay) ||
+        ((!locationIndex || (locationIndex && hasWorkFromHomeApproval)) &&
+          isApprovedLocation)
       )
         if (!workingDay)
           return await clockIn(
             new WorkingHours({ id: dayID }),
             workLocation,
-            locationIndex,
+            isApprovedLocation,
             nowTime,
             res
           );
@@ -68,7 +69,7 @@ router.post(
           return await clockIn(
             workingDay,
             workLocation,
-            locationIndex,
+            isApprovedLocation,
             nowTime,
             res
           );
@@ -81,13 +82,14 @@ router.post(
 const clockIn = async (
   workingDay,
   clockInLocation,
-  locationIndex,
+  isApprovedLocation,
   nowTime,
   res
 ) => {
   workingDay.clockIns.push({
     dateTime: nowTime,
     location: clockInLocation,
+    isApprovedLocation,
   });
   await workingDay.save();
   const nowTimeUser = changeTimeZoneToLocation(
@@ -99,6 +101,29 @@ const clockIn = async (
     nowTime: nowTimeUser,
   });
 };
+router.get(
+  "/clockIns",
+  auth,
+  manager,
+  exceptionHandling(async (req, res) => {
+    const {
+      userToken: { _id: managerID },
+    } = req.body;
+    const { day, month, year } = req.query;
+    const ids = (await User.find({ managerID })).map((user) => user._id);
+    const clockIns = (
+      await WorkingHours.find({
+        "id.userID": { $in: ids },
+        "id.day": day ?? { $gt: 0 },
+        "id.month": month ?? { $gt: 0 },
+        "id.year": year ?? { $gt: 0 },
+      })
+    ).map(({ clockIns, id }) => {
+      return { id, clockIns };
+    });
+    return res.status(RequestCodes.OK).send(clockIns);
+  })
+);
 router.post(
   "/clockOut",
   auth,

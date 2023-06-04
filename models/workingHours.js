@@ -17,7 +17,11 @@ const workingHoursSchema = new mongoose.Schema({
   id: { type: idSchema, unique: true },
   clockIns: {
     type: [
-      { dateTime: Date, location: { longitude: Number, latitude: Number } },
+      {
+        dateTime: Date,
+        location: { longitude: Number, latitude: Number },
+        isApprovedLocation: Boolean,
+      },
     ],
     default: [],
   },
