@@ -22,6 +22,8 @@ module.exports = {
     TIME_SHEET_REQUEST_NOT_FOUND: "The time sheet request ID is incorrect",
     CANNOT_MODIFY_THIS_REQUEST:
       "This request status is not pending you cannot edit this request",
+    NUMBER_OF_WORKING_DAYS_IS_ZERO:
+      "You cannot create a work from home request as the number of working days is 0",
   },
   PrivateKeys: {
     JWT_KEY: "privateKey",

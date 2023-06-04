@@ -39,7 +39,7 @@ router.post(
   auth,
   manager,
   exceptionHandling(async (req, res) => {
-    return await changeRequestStatus(req, res, "Approved");
+    return await changeRequestStatus(req, res, "Approved", "managerID");
   })
 );
 router.post(
@@ -47,18 +47,17 @@ router.post(
   auth,
   manager,
   exceptionHandling(async (req, res) => {
-    return await changeRequestStatus(req, res, "Rejected");
+    return await changeRequestStatus(req, res, "Rejected", "managerID");
   })
 );
 router.post(
   "/cancel/:timeSheetRequestID",
   auth,
-  manager,
   exceptionHandling(async (req, res) => {
-    return await changeRequestStatus(req, res, "Canceled");
+    return await changeRequestStatus(req, res, "Canceled", "userID");
   })
 );
-const changeRequestStatus = async (req, res, status) => {
+const changeRequestStatus = async (req, res, status, userTypeID) => {
   const timeSheetRequestID = req.params.timeSheetRequestID;
   const timeSheetRequest = await TimeSheetRequest.findById(timeSheetRequestID);
   if (!timeSheetRequest)
@@ -66,11 +65,15 @@ const changeRequestStatus = async (req, res, status) => {
       errors: { message: ErrorMessages.TIME_SHEET_REQUEST_NOT_FOUND },
     });
   const {
-    userToken: { _id: managerID },
+    userToken: { _id: userID },
   } = req.body;
-  if (timeSheetRequest.managerID != managerID)
+  if (timeSheetRequest[userTypeID] != userID)
     return res.status(RequestCodes.FORBIDDEN).send({
       errors: { message: ErrorMessages.NOT_ALLOWED_TO_MODIFY_THIS_REQUEST },
+    });
+  if (timeSheetRequest.status !== "Pending")
+    return res.status(RequestCodes.BAD_REQUEST).send({
+      errors: { message: ErrorMessages.CANNOT_MODIFY_THIS_REQUEST },
     });
   timeSheetRequest.status = status;
   await timeSheetRequest.save();
