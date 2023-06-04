@@ -80,6 +80,28 @@ const changeRequestStatus = async (req, res, status, userTypeID) => {
   return res.status(RequestCodes.OK).send(timeSheetRequest);
 };
 router.get(
+  "/reminder",
+  auth,
+  exceptionHandling(async (req, res) => {
+    const {
+      userToken: { _id: userID },
+    } = req.body;
+    const nowTime = new Date(Date.now());
+    const nowMonth = nowTime.getUTCMonth();
+    const nowDay = nowTime.getUTCDate();
+    if (nowDay >= 15 && nowDay <= 21) {
+      const timeSheetRequests = await TimeSheetRequest.find({ userID });
+      for (let request of timeSheetRequests)
+        if (
+          request._id.getTimestamp().getUTCMonth() === nowMonth &&
+          request.status != "Canceled"
+        )
+          return res.status(RequestCodes.OK).send(false);
+    }
+    return res.status(RequestCodes.OK).send(true);
+  })
+);
+router.get(
   "/projects",
   auth,
   exceptionHandling(async (req, res) => {
