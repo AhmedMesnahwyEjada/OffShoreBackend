@@ -76,6 +76,7 @@ const getAllRequests = async (IDAttribute, req, res) => {
       r._doc.type = "workFromHome";
       r._doc.positionArabic = user.roleArabic;
       r._doc.numberOfDays = getNumberOfWorkingDays(r.startDate, r.endDate);
+      r._doc.createdAt = r._id.getTimestamp();
       delete r.userID;
     }
     requests = requests.concat(workFromHomeRequests);
@@ -101,6 +102,9 @@ const getAllRequests = async (IDAttribute, req, res) => {
     }
     requests = requests.concat(timeSheetRequests);
   }
+  requests.sort(
+    (a, b) => new Date(b._id.getTimestamp()) - new Date(a._id.getTimestamp())
+  );
   return res.status(RequestCodes.OK).send(requests);
 };
 
