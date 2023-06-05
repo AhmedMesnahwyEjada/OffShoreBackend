@@ -110,7 +110,8 @@ router.get(
       userToken: { _id: managerID },
     } = req.body;
     const { day, month, year } = req.query;
-    const ids = (await User.find({ managerID })).map((user) => user._id);
+    const users = await User.find({ managerID });
+    const ids = users.map((user) => user._id);
     const clockIns = (
       await WorkingHours.find({
         "id.userID": { $in: ids },
@@ -121,6 +122,22 @@ router.get(
     ).map(({ clockIns, id }) => {
       return { id, clockIns };
     });
+    for (let clockIn of clockIns)
+      for (const user of users)
+        if (user._id.equals(clockIn.id.userID)) {
+          const {
+            _id,
+            password,
+            defaultLocation,
+            workingFromHomeDays,
+            managerID,
+            remoteLocations,
+            __v,
+            ...userData
+          } = user._doc;
+          clockIn.userData = userData;
+        }
+
     return res.status(RequestCodes.OK).send(clockIns);
   })
 );
