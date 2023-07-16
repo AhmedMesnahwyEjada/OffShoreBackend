@@ -96,9 +96,9 @@ router.get(
           request._id.getTimestamp().getUTCMonth() === nowMonth &&
           request.status != "Canceled"
         )
-          return res.status(RequestCodes.OK).send(false);
+          return res.status(RequestCodes.OK).send(true);
     }
-    return res.status(RequestCodes.OK).send(true);
+    return res.status(RequestCodes.OK).send(false);
   })
 );
 router.get(
